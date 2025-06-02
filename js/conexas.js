@@ -3,7 +3,7 @@ let tam_conexas = 4;
 function GenerarMatrizConexas(value) {
     if (value == '+') tam_conexas++;
     else if (value == '-') tam_conexas--;
-    if (tam_conexas > 6) {
+    if (tam_conexas > 7) {
         tam_conexas--;
         alert("No se puede agregar mas celdas");
     }
