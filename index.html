@@ -337,7 +337,7 @@
                                 <input type="text" class="cj-resultado-media">
                             </div>
                         </div>
-
+                        
                     </div>
                     <div class="contenedor rounded desactivado"
                         id="filtro-mediana">
@@ -682,7 +682,7 @@
                     </div>
                     <div class="contenedor rounded desactivado" id="juegos">
                         <h3 class="text-white bg-dark">Teoria de Juegos
-                            (Estretegias puras)</h3>
+                            (Estrategias puras)</h3>
                         <div class="contenido-juegos text-dark">
                             <div class="contenedor-tabla mt-5">
                                 <table class="table table-primary">
@@ -698,15 +698,10 @@
                                     </tbody>
                                 </table>
                                 <div class="mt-3">
-                                    <input type="button" value="+"
-                                        onclick="GenerarTabla('+')"
-                                        class="btn-success me-2 boton-juegos">
-                                    <input type="button" value="-"
-                                        onclick="GenerarTabla('-')"
-                                        class="btn-warning me-2 boton-juegos">
-                                    <input type="button" value="Aceptar"
-                                        onclick="MostrarResultado()"
-                                        class="btn-primary">
+                                    <input type="button" value="+" onclick="GenerarTabla('+')" class="btn-success me-2 boton-juegos">
+                                    <input type="button" value="-" onclick="GenerarTabla('-')" class="btn-warning me-2 boton-juegos">
+                                    <input type="button" value="Aceptar" onclick="MostrarResultado()" class="btn-primary">
+                                    <input type="button" value="Estrategia Mixta" onclick="tam_juegos==2 ? EstrategiaMixta() : EstrategiaMixta3x3()" class="btn-info ms-2">
                                 </div>
                             </div>
                             <h6 class="resultado-juegos">Equilibrio de Nash:
