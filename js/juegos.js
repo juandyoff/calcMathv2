@@ -1,6 +1,6 @@
 let tam_juegos = 2;
-
-let cadena = ['A', 'B', 'C'];
+let filas_juegos = ['A', 'B', 'C'];
+let columnas_juegos = ['X', 'Y', 'Z'];
 
 function crearColumna() {
     let elemento_input1 = document.createElement('input');
@@ -54,7 +54,7 @@ function GenerarTabla(value) {
         elemento_tbody.removeChild(element);
     });
     for (let i = 0; i < tam_juegos; i++) {
-        elemento_tbody.appendChild(crearFila(cadena[i]));
+        elemento_tbody.appendChild(crearFila(filas_juegos[i]));
     }
 
     let cabeza = document.querySelector('.cabeza');
@@ -63,7 +63,7 @@ function GenerarTabla(value) {
         cabeza.removeChild(element);
     });
     for (let i = 0; i < tam_juegos; i++) {
-        cabeza.appendChild(crearCabeza(cadena[i]));
+        cabeza.appendChild(crearCabeza(columnas_juegos[i]));
     }
 }
 GenerarTabla('');
@@ -244,5 +244,254 @@ function MostrarResultado() {
             }
         }
     }
+}
 
+function EstrategiaMixta() {
+    if (tam_juegos !== 2) {
+        alert("La estrategia mixta solo está implementada para juegos 2x2.");
+        return;
+    }
+    let lista = document.querySelectorAll('.txtvalor');
+    let A = [
+        [parseFloat(lista[0].value), parseFloat(lista[2].value)],
+        [parseFloat(lista[4].value), parseFloat(lista[6].value)]
+    ];
+
+    function decimalAFraccion(decimal, maxDen = 1000) {
+        if (isNaN(decimal)) return "NaN";
+        let sign = decimal < 0 ? "-" : "";
+        decimal = Math.abs(decimal);
+        let num = decimal, den = 1;
+        while (Math.abs(num - Math.round(num)) > 1e-8 && den < maxDen) {
+            num *= 10;
+            den *= 10;
+        }
+        let gcd = function(a, b) { return b ? gcd(b, a % b) : a; };
+        let numerador = Math.round(num);
+        let denominador = den;
+        let divisor = gcd(numerador, denominador);
+        return sign + (numerador / divisor) + "/" + (denominador / divisor);
+    }
+
+    function eliminarDominadas2x2(A) {
+        // filas
+        for (let i = 0; i < 2; i++) {
+            let j = 1 - i;
+            if (A[i][0] <= A[j][0] && A[i][1] <= A[j][1] && (A[i][0] < A[j][0] || A[i][1] < A[j][1])) {
+                return {tipo: 'fila', idx: i};
+            }
+        }
+        // columnas
+        for (let i = 0; i < 2; i++) {
+            let j = 1 - i;
+            if (A[0][i] >= A[0][j] && A[1][i] >= A[1][j] && (A[0][i] > A[0][j] || A[1][i] > A[1][j])) {
+                return {tipo: 'columna', idx: i};
+            }
+        }
+        return null;
+    }
+
+let filas = ['A', 'B'];
+let columnas = ['X', 'Y'];
+let equilibrioPuro = null;
+for (let i = 0; i < 2; i++) {
+    for (let j = 0; j < 2; j++) {
+        let esMaxCol = (A[i][j] >= A[1 - i][j]);
+        let esMaxFila = (A[i][j] >= A[i][1 - j]);
+        if (esMaxCol && esMaxFila) {
+            equilibrioPuro = {fila: filas[i], columna: columnas[j], valor: A[i][j]};
+        }
+    }
+}
+
+    let a = A[0][0], b = A[0][1], c = A[1][0], d = A[1][1];
+    let denominador = (a - b - c + d);
+    let p = denominador !== 0 ? (d - b) / denominador : null;
+    let q = denominador !== 0 ? (d - c) / denominador : null;
+
+    let resultado = document.querySelector('.resultado-juegos');
+    resultado.innerHTML = "<b>Estrategia mixta Nash:</b><br>";
+
+    let dominada = eliminarDominadas2x2(A);
+    if (dominada) {
+        if (dominada.tipo === 'fila') {
+            resultado.innerHTML += `Primero se elimina la fila <b>${filas[dominada.idx]}</b>.<br>`;
+        } else {
+            resultado.innerHTML += `Primero se elimina la columna <b>${columnas[dominada.idx]}</b>.<br>`;
+        }
+    } else {
+        resultado.innerHTML += "No hay estrategias puras dominadas.<br>";
+    }
+
+    if (equilibrioPuro) {
+        resultado.innerHTML += `<br><span class="text-success">Equilibrio de Nash en estrategias puras: (<b>${equilibrioPuro.fila}, ${equilibrioPuro.columna}</b>) con valor <b>${equilibrioPuro.valor}</b></span><br>`;
+    } else {
+        resultado.innerHTML += `<br><span class="text-warning">No hay equilibrio de Nash en estrategias puras.</span><br>`;
+    }
+
+    resultado.innerHTML += `<br>Probabilidades:<br>`;
+    resultado.innerHTML += `Jugador 1 (A, B): [${p !== null ? decimalAFraccion(p) : 'No calculable'}, ${p !== null ? decimalAFraccion(1 - p) : 'No calculable'}]<br>`;
+    resultado.innerHTML += `Jugador 2 (X, Y): [${q !== null ? decimalAFraccion(q) : 'No calculable'}, ${q !== null ? decimalAFraccion(1 - q) : 'No calculable'}]<br>`;
+
+    resultado.innerHTML += `<br>Punto de equilibrio:<br>`;
+    resultado.innerHTML += `(<b>${p !== null ? decimalAFraccion(p) + 'A' : '-'} + ${p !== null ? decimalAFraccion(1 - p) + 'B' : '-'}</b> ; <b>${q !== null ? decimalAFraccion(q) + 'X' : '-'} + ${q !== null ? decimalAFraccion(1 - q) + 'Y' : '-'}</b>)<br>`;
+
+    if (p === null || q === null || isNaN(p) || isNaN(q)) {
+        resultado.innerHTML += `<span class="text-danger">No existe solución mixta válida para estos valores.</span>`;
+    } else if (p < 0 || p > 1 || q < 0 || q > 1) {
+        resultado.innerHTML += `<span class="text-warning">Las probabilidades no forman una distribución válida (hay valores negativos o mayores a 1).</span>`;
+    } else {
+        resultado.innerHTML += `<span class="text-success">Solución mixta válida.</span>`;
+    }
+}
+
+function EstrategiaMixta3x3() {
+    if (tam_juegos !== 3) {
+        alert("La estrategia mixta solo está implementada para juegos 3x3.");
+        return;
+    }
+    let lista = document.querySelectorAll('.txtvalor');
+    let A = [
+        [parseFloat(lista[0].value), parseFloat(lista[2].value), parseFloat(lista[4].value)],
+        [parseFloat(lista[6].value), parseFloat(lista[8].value), parseFloat(lista[10].value)],
+        [parseFloat(lista[12].value), parseFloat(lista[14].value), parseFloat(lista[16].value)]
+    ];
+
+    function solveMixedStrategy3x3(A) {
+        let M = [
+            [A[0][0] - A[0][1], A[1][0] - A[1][1], A[2][0] - A[2][1]],
+            [A[0][0] - A[0][2], A[1][0] - A[1][2], A[2][0] - A[2][2]],
+            [1, 1, 1]
+        ];
+        let B = [0, 0, 1];
+        function det3(m) {
+            return m[0][0]*(m[1][1]*m[2][2] - m[1][2]*m[2][1])
+                 - m[0][1]*(m[1][0]*m[2][2] - m[1][2]*m[2][0])
+                 + m[0][2]*(m[1][0]*m[2][1] - m[1][1]*m[2][0]);
+        }
+        function solve3x3(M, B) {
+            let D = det3(M);
+            if (D === 0) return null;
+            let M1 = [
+                [B[0], M[0][1], M[0][2]],
+                [B[1], M[1][1], M[1][2]],
+                [B[2], M[2][1], M[2][2]]
+            ];
+            let M2 = [
+                [M[0][0], B[0], M[0][2]],
+                [M[1][0], B[1], M[1][2]],
+                [M[2][0], B[2], M[2][2]]
+            ];
+            let M3 = [
+                [M[0][0], M[0][1], B[0]],
+                [M[1][0], M[1][1], B[1]],
+                [M[2][0], M[2][1], B[2]]
+            ];
+            let p1 = det3(M1) / D;
+            let p2 = det3(M2) / D;
+            let p3 = det3(M3) / D;
+            return [p1, p2, p3];
+        }
+        let p = solve3x3(M, B);
+        return p;
+    }
+
+    function transpose(M) {
+        return M[0].map((_, i) => M.map(row => row[i]));
+    }
+
+    function decimalAFraccion(decimal, maxDen = 1000) {
+        if (isNaN(decimal)) return "NaN";
+        let sign = decimal < 0 ? "-" : "";
+        decimal = Math.abs(decimal);
+        let num = decimal, den = 1;
+        while (Math.abs(num - Math.round(num)) > 1e-8 && den < maxDen) {
+            num *= 10;
+            den *= 10;
+        }
+        let gcd = function(a, b) { return b ? gcd(b, a % b) : a; };
+        let numerador = Math.round(num);
+        let denominador = den;
+        let divisor = gcd(numerador, denominador);
+        return sign + (numerador / divisor) + "/" + (denominador / divisor);
+    }
+
+    function eliminarDominadas(A) {
+        // filas
+        for (let i = 0; i < 3; i++) {
+            for (let j = 0; j < 3; j++) {
+                if (i !== j) {
+                    let dominada = true;
+                    for (let k = 0; k < 3; k++) {
+                        if (A[i][k] > A[j][k]) dominada = false;
+                    }
+                    if (dominada) return {tipo: 'fila', idx: i};
+                }
+            }
+        }
+        // columnas
+        for (let i = 0; i < 3; i++) {
+            for (let j = 0; j < 3; j++) {
+                if (i !== j) {
+                    let dominada = true;
+                    for (let k = 0; k < 3; k++) {
+                        if (A[k][i] < A[k][j]) dominada = false;
+                    }
+                    if (dominada) return {tipo: 'columna', idx: i};
+                }
+            }
+        }
+        return null;
+    }
+
+    let p = solveMixedStrategy3x3(A); // Jugador 1 (A,B,C)
+    let q = solveMixedStrategy3x3(transpose(A)); // Jugador 2 (X,Y,Z)
+
+    let filas = ['A', 'B', 'C'];
+    let columnas = ['X', 'Y', 'Z'];
+
+    let resultado = document.querySelector('.resultado-juegos');
+    resultado.innerHTML = "<b>Estrategia mixta Nash:</b><br>";
+
+    let dominada = eliminarDominadas(A);
+    let filaEliminada = "-";
+    let columnaEliminada = "-";
+    if (dominada) {
+        if (dominada.tipo === 'fila') {
+            filaEliminada = filas[dominada.idx];
+            resultado.innerHTML += `Primero se elimina la fila <b>${filaEliminada}</b>.<br>`;
+            let A2 = A.filter((_, idx) => idx !== dominada.idx);
+            let colDominada = eliminarDominadas(transpose(A2));
+            if (colDominada && colDominada.tipo === 'fila') {
+                columnaEliminada = columnas[colDominada.idx];
+                resultado.innerHTML += `Luego eliminamos la columna <b>${columnaEliminada}</b>.<br>`;
+            }
+        } else {
+            columnaEliminada = columnas[dominada.idx];
+            resultado.innerHTML += `Primero se elimina la columna <b>${columnaEliminada}</b>.<br>`;
+            let A2 = A.map(row => row.filter((_, idx) => idx !== dominada.idx));
+            let filaDominada = eliminarDominadas(A2);
+            if (filaDominada && filaDominada.tipo === 'fila') {
+                filaEliminada = filas[filaDominada.idx];
+                resultado.innerHTML += `Luego eliminamos la fila <b>${filaEliminada}</b>.<br>`;
+            }
+        }
+    } else {
+        resultado.innerHTML += "No hay estrategias puras dominadas.<br>";
+    }
+
+    resultado.innerHTML += `<br>Probabilidades:<br>`;
+    resultado.innerHTML += `Jugador 1 (A, B, C): [${p ? p.map(x => decimalAFraccion(x)).join(', ') : 'No calculable'}]<br>`;
+    resultado.innerHTML += `Jugador 2 (X, Y, Z): [${q ? q.map(x => decimalAFraccion(x)).join(', ') : 'No calculable'}]<br>`;
+
+    resultado.innerHTML += `<br>Punto de equilibrio:<br>`;
+    resultado.innerHTML += `(<b>${p ? p.map((x, i) => decimalAFraccion(x) + filas[i]).join(' + ') : '-'}</b> ; <b>${q ? q.map((x, i) => decimalAFraccion(x) + columnas[i]).join(' + ') : '-'}</b>)<br>`;
+
+    if (!p || !q || p.some(x => isNaN(x)) || q.some(x => isNaN(x))) {
+        resultado.innerHTML += `<span class="text-danger">No existe solución mixta válida para estos valores.</span>`;
+    } else if (p.some(x => x < 0 || x > 1) || q.some(x => x < 0 || x > 1)) {
+        resultado.innerHTML += `<span class="text-warning">Las probabilidades no forman una distribución válida (hay valores negativos o mayores a 1).</span>`;
+    } else {
+        resultado.innerHTML += `<span class="text-success">Solución mixta válida.</span>`;
+    }
 }
