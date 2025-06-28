@@ -23,4 +23,5 @@ Desarrollado con fines educativos para la comunidad UPC.
 Creditos: Carlos Jesús Ordaz Hoyos
 
 Updates: Miguel Juan Diego Esquirva León 
+
 Discord: juandyoff
